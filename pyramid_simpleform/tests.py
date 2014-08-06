@@ -161,6 +161,50 @@ class TestFormencodeForm(unittest.TestCase):
 
         self.assert_(form.errors_for('name') == ['Missing value'])
 
+    def test_variable_decode_encodes_errors(self):
+        from formencode import ForEach
+        from pyramid_simpleform import Form
+
+        request = testing.DummyRequest()
+        request.method = "POST"
+        request.POST = {
+            "names-0": "valid",
+            "names-1": "",
+            "names-2": "valid",
+        }
+
+        class TestSchema(Schema):
+
+            names = ForEach(validators.NotEmpty())
+
+        form = Form(request, schema=TestSchema(), variable_decode=True)
+        self.assert_(not form.validate())
+        self.assertEqual(form.errors, {"names-1": "Please enter a value"})
+
+    def test_dont_encode_errors(self):
+        from formencode import ForEach
+        from pyramid_simpleform import Form
+
+        request = testing.DummyRequest()
+        request.method = "POST"
+        request.POST = {
+            "names-0": "valid",
+            "names-1": "",
+            "names-2": "valid",
+        }
+
+        class TestSchema(Schema):
+
+            names = ForEach(validators.NotEmpty())
+
+        form = Form(request,
+                    schema=TestSchema(),
+                    variable_decode=True,
+                    encode_errors=False)
+        self.assert_(not form.validate())
+        self.assertEqual(form.errors, {"names":
+                                       [None, "Please enter a value", None]})
+
     def test_validate_twice(self):
         
         from pyramid_simpleform import Form

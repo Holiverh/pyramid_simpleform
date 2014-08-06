@@ -84,14 +84,18 @@ class Form(object):
 
     def __init__(self, request, schema=None, validators=None, defaults=None, 
                  obj=None, extra=None, include=None, exclude=None, state=None, 
-                 method="POST", variable_decode=False,  dict_char=".", 
-                 list_char="-", multipart=False):
+                 method="POST", variable_decode=False,  encode_errors=None,
+                 dict_char=".", list_char="-", multipart=False):
 
         self.request = request
         self.schema = schema
         self.validators = validators or {}
         self.method = method
         self.variable_decode = variable_decode
+        if encode_errors is None:
+            self.encode_errors = self.variable_decode
+        else:
+            self.encode_errors = encode_errors
         self.dict_char = dict_char
         self.list_char = list_char
         self.multipart = multipart
@@ -198,7 +202,7 @@ class Form(object):
             try:
                 self.data = self.schema.to_python(decoded, self.state)
             except Invalid, e:
-                self.errors = e.unpack_errors(self.variable_decode,
+                self.errors = e.unpack_errors(self.encode_errors,
                                               self.dict_char,
                                               self.list_char)
 
