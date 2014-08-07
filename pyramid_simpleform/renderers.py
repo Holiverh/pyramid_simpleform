@@ -1,4 +1,5 @@
 
+import formencode
 from webhelpers.html import tags
 from webhelpers.html.builder import HTML
 
@@ -265,6 +266,54 @@ class FormRenderer(Renderer):
         return HTML.tag("div", 
                         tags.literal("".join(inputs)), 
                         style="display:none;")
+
+
+class HTML5Renderer(FormRenderer):
+    """
+    An enhanced form helper which adds support for various HTML5 features
+    such autofocus and new input types.
+    """
+
+    FIRST = "first"
+    ERROR = "error"
+    EMPTY = "empty"
+
+    def __init__(self, form, csrf_field='_csrf', id_prefix=None,
+                 autofocus=None):
+        super(HTML5Renderer, self).__init__(form, csrf_field, id_prefix)
+        if autofocus is True:
+            autofocus = self.FIRST
+        self.autofocus = autofocus
+        self._autofocus_set = False
+
+    def _autofocus(self, name, attrs):
+        """
+        Set autofocus on a field
+
+        If autofocus hasn't already been set then it add it to the `attrs`
+        for the first element that should recieve autofocus according to the
+        autofocus mode set on the renderer.
+        """
+        # Allow autofocus to be set manually
+        if 'autofocus' in attrs:
+            self._autofocus_set = True
+        if self._autofocus_set or not self.autofocus:
+            return
+        if self.autofocus == self.FIRST:
+            attrs['autofocus'] = 'autofocus'
+        elif self.autofocus == self.ERROR:
+            if self.errors_for(name):
+                attrs['autofocus'] = 'autofocus'
+        elif self.autofocus == self.EMPTY:
+            if formencode.is_empty(self.value(name)):
+                attrs['autofocus'] = 'autofocus'
+        if 'autofocus' in attrs:
+            self._autofocus_set = True
+        return
+
+    def text(self, name, value=None, id=None, **attrs):
+        self._autofocus(name, attrs)
+        return super(HTML5Renderer, self).text(name, value, id, **attrs)
 
 
 class SequenceRenderer(Renderer):

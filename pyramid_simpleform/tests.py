@@ -783,3 +783,77 @@ class TestFormencodeFormRenderer(unittest.TestCase):
         self.assert_(renderer.label("name", "Your name") == \
                    '<label for="name">Your name</label>') 
 
+
+class TestHTML5Renderer(unittest.TestCase):
+
+    def test_autofocus_true(self):
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+
+        request = testing.DummyRequest()
+        form = Form(request, SimpleFESchema)
+        renderer = HTML5Renderer(form, autofocus=True) 
+        self.assert_(renderer.autofocus == renderer.FIRST)
+
+    def test_autofocus_first(self):
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+
+        request = testing.DummyRequest()
+        form = Form(request, SimpleFESchema)
+        renderer = HTML5Renderer(form, autofocus='first')
+        attrs = [{}, {}]
+        renderer._autofocus('doesnt_matter', attrs[0])
+        renderer._autofocus('doesnt_matter', attrs[1])
+        self.assertIn('autofocus', attrs[0])
+        self.assertNotIn('autofocus', attrs[1])
+
+    def test_autofocus_error(self):
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+
+        request = testing.DummyRequest()
+        form = Form(request, SimpleFESchema)
+        renderer = HTML5Renderer(form, autofocus='error')
+        form.errors = {'error_field': 'Error message'}
+        self.assert_(renderer.errors_for('error_field'))
+        attrs = [{}, {}, {}]
+        renderer._autofocus('valid_field', attrs[0])
+        renderer._autofocus('error_field', attrs[1])
+        renderer._autofocus('error_field', attrs[2])
+        self.assertNotIn('autofocus', attrs[0])
+        self.assertIn('autofocus', attrs[1])
+        self.assertNotIn('autofocus', attrs[2])
+
+    def test_autofocus_empty(self):
+        from formencode.api import is_empty
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+
+        request = testing.DummyRequest()
+        form = Form(request, SimpleFESchema)
+        form.data = {'not_empty': '...', 'empty': ''}
+        renderer = HTML5Renderer(form, autofocus='empty')
+        self.assert_(not is_empty(renderer.value('not_empty')))
+        self.assert_(is_empty(renderer.value('empty')))
+        attrs = [{}, {}, {}]
+        renderer._autofocus('not_empty', attrs[0])
+        renderer._autofocus('empty', attrs[1])
+        renderer._autofocus('empty', attrs[2])
+        self.assertNotIn('autofocus', attrs[0])
+        self.assertIn('autofocus', attrs[1])
+        self.assertNotIn('autofocus', attrs[2])
+
+    def test_autofocus_manual(self):
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+
+        request = testing.DummyRequest()
+        form = Form(request, SimpleFESchema)
+        form.errors = {'error_field': 'Error message'}
+        renderer = HTML5Renderer(form, autofocus='error')
+        attrs = [{'autofocus': 'autofocus'}, {}]
+        renderer._autofocus('doesnt_matter', attrs[0])
+        renderer._autofocus('error_field', attrs[1])
+        self.assertIn('autofocus', attrs[0])
+        self.assertNotIn('autofocus', attrs[1])
