@@ -372,6 +372,17 @@ class HTML5Renderer(FormRenderer):
         attrs['id'] = self._get_id(id, name)
         return HTML.tag('input', **attrs)
 
+    def email(self, name, value=None, id=None, **user_attrs):
+        if value is None:
+            value = self.value(name, value)
+        attrs = {'type': 'email',
+                 'id': self._get_id(id, name),
+                 'name': 'name',
+                 'value': value}
+        attrs.update(user_attrs)
+        self._autofocus(name, attrs)
+        return HTML.tag('input', **attrs)
+
 
 class SequenceRenderer(Renderer):
 

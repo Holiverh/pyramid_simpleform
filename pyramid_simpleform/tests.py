@@ -978,3 +978,20 @@ class TestHTML5Renderer(unittest.TestCase):
         )
         self.assertEqual(
                 str(renderer.number('field', value=10)), str(expected))
+
+    def test_email(self):
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+        from webhelpers.html.builder import HTML
+
+        request = testing.DummyRequest()
+        form = Form(request, SimpleFESchema, defaults={'name' : 'foo@bar'})
+        renderer = HTML5Renderer(form)
+        expected = HTML.tag(
+            'input',
+            type='email',
+            id='name',
+            name='name',
+            value='foo@bar',
+        )
+        self.assertEqual(str(renderer.email('name')), str(expected))
