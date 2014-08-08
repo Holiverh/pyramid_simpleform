@@ -290,7 +290,7 @@ class HTML5Renderer(FormRenderer):
         """
         Set autofocus on a field
 
-        If autofocus hasn't already been set then it add it to the `attrs`
+        If autofocus hasn't already been set then add it to the `attrs`
         for the first element that should recieve autofocus according to the
         autofocus mode set on the renderer.
         """
@@ -310,6 +310,17 @@ class HTML5Renderer(FormRenderer):
         if 'autofocus' in attrs:
             self._autofocus_set = True
         return
+
+    def _field_for(self, name):
+        """
+        Retrieve the schema field for a given name
+
+        :return: a FormEncode validator or None
+        """
+        if self.form.schema:
+            return self.form.schema.fields.get(name)
+        else:
+            return self.form.validators.get(name)
 
     def text(self, name, value=None, id=None, **attrs):
         self._autofocus(name, attrs)
@@ -344,6 +355,22 @@ class HTML5Renderer(FormRenderer):
         self._autofocus(name, attrs)
         return super(HTML5Renderer, self).password(name, value, id, **attrs)
 
+    def number(self, name, value=None, id=None, **attrs):
+        self._autofocus(name, attrs)
+        attrs['type'] = 'number'
+        field = self._field_for(name)
+        if isinstance(field, (formencode.validators.Int,
+                              formencode.validators.Number)):
+            if field.max is not None and 'max' not in attrs:
+                attrs['max'] = field.max
+            if field.min is not None and 'min' not in attrs:
+                attrs['min'] = field.min
+        if value is None:
+            value = self.value(name, value)
+        attrs['name'] = name
+        attrs['value'] = value
+        attrs['id'] = self._get_id(id, name)
+        return HTML.tag('input', **attrs)
 
 
 class SequenceRenderer(Renderer):

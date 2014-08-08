@@ -857,3 +857,124 @@ class TestHTML5Renderer(unittest.TestCase):
         renderer._autofocus('error_field', attrs[1])
         self.assertIn('autofocus', attrs[0])
         self.assertNotIn('autofocus', attrs[1])
+
+    def test_field_for_schema(self):
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+
+        request = testing.DummyRequest()
+        form = Form(request, SimpleFESchema)
+        renderer = HTML5Renderer(form)
+        self.assertIs(renderer._field_for('name'), form.schema.fields['name'])
+
+    def test_field_for_validators(self):
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+
+        request = testing.DummyRequest()
+        form_validators = {'name': validators.NotEmpty()}
+        form = Form(request, validators=form_validators)
+        renderer = HTML5Renderer(form)
+        self.assertIs(renderer._field_for('name'), form_validators['name'])
+
+    def test_number(self):
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+        from webhelpers.html.builder import HTML
+
+        request = testing.DummyRequest()
+        form = Form(request, SimpleFESchema, defaults={'name' : 5})
+        renderer = HTML5Renderer(form)
+        expected = HTML.tag(
+            'input',
+            type='number',
+            id='name',
+            name='name',
+            value=5,
+        )
+        self.assertEqual(str(renderer.number('name')), str(expected))
+
+    def test_number_int_min_max(self):
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+        from webhelpers.html.builder import HTML
+
+        class TestSchema(Schema):
+            field = validators.Int(min=0, max=10)
+
+        request = testing.DummyRequest()
+        form = Form(request, TestSchema, defaults={'field' : 5})
+        renderer = HTML5Renderer(form)
+        expected = HTML.tag(
+            'input',
+            type='number',
+            id='field',
+            name='field',
+            value=5,
+            min=0,
+            max=10,
+        )
+        self.assertEqual(str(renderer.number('field')), str(expected))
+
+    def test_number_number_min_max(self):
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+        from webhelpers.html.builder import HTML
+
+        class TestSchema(Schema):
+            field = validators.Number(min=0, max=10)
+
+        request = testing.DummyRequest()
+        form = Form(request, TestSchema, defaults={'field' : 5})
+        renderer = HTML5Renderer(form)
+        expected = HTML.tag(
+            'input',
+            type='number',
+            id='field',
+            name='field',
+            value=5,
+            min=0,
+            max=10,
+        )
+        self.assertEqual(str(renderer.number('field')), str(expected))
+
+    def test_number_min_max_manual(self):
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+        from webhelpers.html.builder import HTML
+
+        class TestSchema(Schema):
+            field = validators.Int(min=0, max=10)
+
+        request = testing.DummyRequest()
+        form = Form(request, TestSchema, defaults={'field' : 5})
+        renderer = HTML5Renderer(form)
+        expected = HTML.tag(
+            'input',
+            type='number',
+            id='field',
+            name='field',
+            value=5,
+            min=-10,
+            max=20,
+        )
+        self.assertEqual(
+                str(renderer.number('field', min=-10, max=20)), str(expected))
+
+    def test_number_value_manual(self):
+        from pyramid_simpleform import Form
+        from pyramid_simpleform.renderers import HTML5Renderer
+        from webhelpers.html.builder import HTML
+
+        request = testing.DummyRequest()
+        form = Form(request, SimpleFESchema, defaults={'field' : 5})
+        renderer = HTML5Renderer(form)
+        expected = HTML.tag(
+            'input',
+            type='number',
+            id='field',
+            name='field',
+            value=10,
+        )
+        self.assertEqual(
+                str(renderer.number('field', value=10)), str(expected))
