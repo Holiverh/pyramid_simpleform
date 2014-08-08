@@ -315,6 +315,36 @@ class HTML5Renderer(FormRenderer):
         self._autofocus(name, attrs)
         return super(HTML5Renderer, self).text(name, value, id, **attrs)
 
+    def file(self, name, value=None, id=None, **attrs):
+        self._autofocus(name, attrs)
+        return super(HTML5Renderer, self).file(name, value, id, **attrs)
+
+    def radio(self, name, value=None, checked=False, label=None, **attrs):
+        self._autofocus(name, attrs)
+        return super(HTML5Renderer, self).radio(name, value,
+                                                checked, label, **attrs)
+
+    def select(self, name, options, selected_value=None, id=None, **attrs):
+        self._autofocus(name, attrs)
+        return super(HTML5Renderer, self).select(name, options,
+                                                 selected_value, id, **attrs)
+
+    def checkbox(self, name, value="1", checked=False, label=None, id=None, 
+                 **attrs):
+        self._autofocus(name, attrs)
+        return super(HTML5Renderer, self).checkbox(name, value, checked,
+                                                   label, id, **attrs)
+
+    def textarea(self, name, content="", id=None, **attrs):
+        self._autofocus(name, attrs)
+        return super(HTML5Renderer, self).textarea(name,
+                                                   content, id, **atttrs)
+
+    def password(self, name, value=None, id=None, **attrs):
+        self._autofocus(name, attrs)
+        return super(HTML5Renderer, self).password(name, value, id, **attrs)
+
+
 
 class SequenceRenderer(Renderer):
 
