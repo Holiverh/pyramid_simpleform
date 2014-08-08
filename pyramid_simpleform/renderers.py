@@ -355,29 +355,39 @@ class HTML5Renderer(FormRenderer):
         self._autofocus(name, attrs)
         return super(HTML5Renderer, self).password(name, value, id, **attrs)
 
-    def number(self, name, value=None, id=None, **attrs):
-        self._autofocus(name, attrs)
-        attrs['type'] = 'number'
+    def number(self, name, value=None, id=None, **user_attrs):
+        """
+        Outputs a number input.
+
+        If the field specified by `name` is an `Int` or `Number` validator
+        then the mix and max values will be set on the input if present.
+        """
+        if value is None:
+            value = self.value(name, value)
+        attrs = {'type': 'number',
+                 'id': self._get_id(id, name),
+                 'name': name,
+                 'value': value}
         field = self._field_for(name)
         if isinstance(field, (formencode.validators.Int,
                               formencode.validators.Number)):
-            if field.max is not None and 'max' not in attrs:
+            if field.max is not None:
                 attrs['max'] = field.max
-            if field.min is not None and 'min' not in attrs:
+            if field.min is not None:
                 attrs['min'] = field.min
-        if value is None:
-            value = self.value(name, value)
-        attrs['name'] = name
-        attrs['value'] = value
-        attrs['id'] = self._get_id(id, name)
+        attrs.update(user_attrs)
+        self._autofocus(name, attrs)
         return HTML.tag('input', **attrs)
 
     def email(self, name, value=None, id=None, **user_attrs):
+        """
+        Outputs a email input.
+        """
         if value is None:
             value = self.value(name, value)
         attrs = {'type': 'email',
                  'id': self._get_id(id, name),
-                 'name': 'name',
+                 'name': name,
                  'value': value}
         attrs.update(user_attrs)
         self._autofocus(name, attrs)
